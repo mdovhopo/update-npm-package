@@ -10,6 +10,18 @@ export class Config {
   public readonly configFilePath = `${process.env.HOME}/.config/update-pkg-config/config.json`;
   private readonly configFileBase = path.dirname(this.configFilePath);
 
+  public setAuthToken(token: string): void {
+    this.setConfigFileProp('authToken', token);
+  }
+
+  public getAuthToken(): string {
+    return this.getConfigFile('authToken');
+  }
+
+  public clearConfig(): void {
+    fs.rmSync(this.configFileBase, { recursive: true });
+  }
+
   private ensureConfigFile(): void {
     const configFileExists = fs.existsSync(this.configFilePath);
 
@@ -49,17 +61,5 @@ export class Config {
     }
 
     return value;
-  }
-
-  public setAuthToken(token: string): void {
-    this.setConfigFileProp('authToken', token);
-  }
-
-  public getAuthToken(): string {
-    return this.getConfigFile('authToken');
-  }
-
-  public clearConfig(): void {
-    fs.rmSync(this.configFileBase, { recursive: true });
   }
 }

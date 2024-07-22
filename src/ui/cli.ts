@@ -4,8 +4,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Config } from '../config/config.js';
 import { RemoteGithubPkgJson } from '../services/remote-pkg-json/git-vendors/remote-github-pkg-json.js';
-import { UpdateDependencyVersion } from '../services/update-dependency-version/update-dependency-version.js';
-import { argv } from 'process';
+import { ModifyPkgJson } from '../services/modify-pkg-json/modify-pkg-json.js';
+import { UpdateDependency } from '../services/update-dependency/update-dependency.js';
 
 yargs(hideBin(process.argv))
   .command(
@@ -42,34 +42,19 @@ yargs(hideBin(process.argv))
       // TODO: consider using a dependency injection container
       const config = new Config();
 
-      // TODO: consider using a parameter for git vendor and select correct implementation
-      const remoteGithubPkgJson = new RemoteGithubPkgJson(config);
-      const updateDependencyVersion = new UpdateDependencyVersion();
+      const updateDependency = new UpdateDependency(
+        config,
+        // TODO: consider using a parameter for git vendor and select correct implementation
+        new RemoteGithubPkgJson(config),
+        new ModifyPkgJson(),
+      );
 
-      console.log('fetching package.json from remote repository...');
-      const pkg = await remoteGithubPkgJson.getPkgJson(owner, repo);
-
-      console.log('updating package.json...');
-      const updatedPkgJson =
-        await updateDependencyVersion.updateDependencyVersion(
-          pkg.pkgJson,
-          pkgToUpdate,
-          requiredVersion,
-        );
-
-      console.log('opening pull request...');
-      const { prLink } =
-        await remoteGithubPkgJson.openPullRequestWithUpdatedPkgJson(
-          owner,
-          repo,
-          {
-            name: pkgToUpdate,
-            sha: pkg.fileSha,
-            payload: updatedPkgJson,
-            currentVersion: pkgToUpdate,
-            updatedVersion: requiredVersion,
-          },
-        );
+      const { prLink } = await updateDependency.updateDependency(
+        owner,
+        repo,
+        pkgToUpdate,
+        requiredVersion,
+      );
 
       console.log(`done! PR link: ${prLink}`);
     },

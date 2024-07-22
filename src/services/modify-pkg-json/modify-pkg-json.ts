@@ -1,7 +1,13 @@
 import { PkgJson } from '../../domain/pkg-json.js';
 import semver from 'semver';
 
-export class UpdateDependencyVersion {
+export const dependenciesLocation = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+] as const;
+
+export class ModifyPkgJson {
   public async updateDependencyVersion(
     pkgJson: PkgJson,
     name: string,
@@ -11,9 +17,26 @@ export class UpdateDependencyVersion {
 
     const pkgJsonCopy = structuredClone(pkgJson);
 
-    pkgJsonCopy.dependencies[name] = version;
+    const { updated } = this.updateDependency(pkgJsonCopy, name, version);
+
+    if (!updated) {
+      throw new Error(
+        `Dependency ${name} not found in any of the locations - ${dependenciesLocation.join(', ')} in the package.json`,
+      );
+    }
 
     return pkgJsonCopy;
+  }
+
+  private updateDependency(pkgJson: PkgJson, name: string, version: string) {
+    for (const location of dependenciesLocation) {
+      if (pkgJson[location]?.[name]) {
+        pkgJson[location][name] = version;
+        return { updated: true };
+      }
+    }
+
+    return { updated: false };
   }
 
   private async validate(
@@ -36,14 +59,6 @@ export class UpdateDependencyVersion {
     }
 
     await this.validatePackage(name, version);
-
-    if (!pkgJson?.dependencies[name]) {
-      throw new Error(`Dependency ${name} not found in package.json`);
-    }
-
-    if (pkgJson.dependencies[name] === version) {
-      throw new Error(`Dependency ${name} is already ${version}`);
-    }
   }
 
   // based on https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md#getpackageversion

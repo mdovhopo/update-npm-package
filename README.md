@@ -1,4 +1,4 @@
-# update dependency version
+# update npm package
 
 This is a small utility that updates the version of a dependency in a `package.json` file and opens a pull request with the changes.
 
@@ -27,6 +27,15 @@ To update dependency version, run:
 npx tsx src/ui/cli.ts update --repo-name <repo> --repo-owner <owner> --package-name <name> --package-version <version>
 ```
 
+### Testing
+
+Repo also contains automated e2e tests with real Github.
+
+Run tests via node's default testrunner
+
+```bash
+node --import tsx --test tests/e2e/e2e.test.ts
+```
 
 ### Demo
 
@@ -39,10 +48,6 @@ To run demo:
 4. Set token - `npx tsx src/ui/cli.ts set-auth-token --token <token>`
 5. Run the utility - `npx tsx src/ui/cli.ts update --repo-name demo-repo --repo-owner mdovhopo --package-name test --package-version 3.0.0`
 
-github auth token
-```
-Z2l0aHViX3BhdF8xMUFLWEZMNVkwVUU2TUlyM1JIdFZBXzJTTDNYS3RJNUI1VmRtN21IQUhIRnJTdG1NZ004emdQQXl5R2FOQ2dlR2lLNVlVVE43VUZKUVEzWFlCCg==
-```
-> Note: token is base64 encoded, to bypass github secret leak protection
+> Note: Token is located at `./demo-gh-token.base64.txt`. token is base64 encoded, to bypass github secret leak protection
 > Note: token has only access to demo repo and is set to expire in 7 days
 
